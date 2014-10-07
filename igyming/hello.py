@@ -1,9 +1,83 @@
-from flask import Flask
+from flask import Flask, render_template, redirect, request
+import httplib,json, urlparse
+
 app = Flask(__name__)
 
-@app.route('/')
-def hello():
-    return 'Hello World'
 
-if __name__ == '__main__' :
-    app.run()
+def getAccessToken(authCode):
+    headers = {"Content_Type" : "text/html"}
+    conn = httplib.HTTPSConnection("graph.qq.com")
+    url = "/oauth2.0/token?grant_type=authorization_code&client_id=101152993&client_secret=39e34e7ced96d128c8ecc0f68c705db8&code=" + authCode +"&redirect_uri=www.igyming.com%2Fhome&state=1"
+    conn.request("GET", url, '', headers)
+    resp = conn.getresponse()
+    body = resp.read()
+    o = urlparse.parse_qs(body)
+    return o['access_token'][0]
+
+def getTaobaoAccessToken(authCode):
+    headers = {"Content_Type" : "text/html"}
+    conn = httplib.HTTPSConnection("oauth.taobao.com")
+    url = "/token?client_id=23028821&client_secret=2dc45d9aaa6de08af22f39d9be3962d6&grant_type=authorization_code&code=" + authCode + "&redirect_uri=www.igyming.com%2Ftaobaohome&state=123"
+    conn.request("POST", url, '', headers)
+    resp = conn.getresponse()
+    body = resp.read()
+    oJson = json.loads(body)
+    return oJson['access_token']
+
+def getOpenID(accessToken):
+    headers = {"Content_Type" : "text/html"}
+    conn = httplib.HTTPSConnection("graph.qq.com")
+    url = "/oauth2.0/me?access_token=" + accessToken
+    conn.request("GET", url, '', headers)
+    resp = conn.getresponse()
+    body = resp.read()
+    if "callback" in body :
+        lPos = body.find('(')
+        rPos = body.find(')')
+        strJson = body[lPos+1:rPos]
+        decoded = json.loads(strJson)
+        return decoded['openid']
+    else:
+        return "false"
+
+def getUserInfo(accessToken, openID):
+    headers = {"Content_Type" : "text/html"}
+    conn = httplib.HTTPSConnection("graph.qq.com")
+    url = "/user/get_user_info?access_token=" + accessToken + "&oauth_consumer_key=101152993" + "&openid=" + openID
+    conn.request("GET", url, '', headers)
+    resp = conn.getresponse()
+    body = resp.read()
+    decoded = json.loads(body)
+    return json.dumps(decoded, sort_keys=True, indent=4)
+
+@app.route("/")
+def default():
+    return render_template('login.html')
+
+@app.route("/home", methods=['GET'])
+def home():
+    code = request.args.get('code', '')
+    state = request.args.get('state', '')
+    accessToken = getAccessToken(code)
+    openID = getOpenID(accessToken)
+    return getUserInfo(accessToken, openID)
+
+@app.route("/taobaohome", methods=['GET'])
+def taobaohome():
+    code = request.args.get('code', '')
+    state = request.args.get('state', '')
+    accessToken = getTaobaoAccessToken(code)
+    return accessToken
+
+@app.route("/oauth/qq")
+def qqlogin():
+    return redirect("https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101152993&redirect_uri=www.igyming.com%2Fhome&state=1")
+
+@app.route("/oauth/taobao")
+def tabaoLogin():
+    return redirect("https://oauth.taobao.com/authorize?response_type=code&client_id=23028821&redirect_uri=http://www.igyming.com/taobaohome&state=123&view=web")
+
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8080)
+
