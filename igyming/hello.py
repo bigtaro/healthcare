@@ -102,6 +102,10 @@ def qqlogin():
 def tabaoLogin():
     return redirect("https://oauth.taobao.com/authorize?response_type=code&client_id=23028821&redirect_uri=http://www.igyming.com/taobaohome&state=123&view=web")
 
+@app.route("/asus")
+def redirectAsus() :
+    unparseURL = urlparse.urlunparse( ("http", "bigtaro.asuscomm.com:8000","home", '', request.query_string,'' ) )
+    return redirect(unparseURL)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8080)
