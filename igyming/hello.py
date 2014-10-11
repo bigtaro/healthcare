@@ -1,8 +1,16 @@
 from flask import Flask, render_template, redirect, request
-import httplib,json, urlparse
+import httplib,json, urlparse, urllib, ConfigParser, os
 
 app = Flask(__name__)
 
+qq_end = {"base_url" : "graph.qq.com",
+      "callback_url" : "bigtaro.asuscomm.com:8000%2Fhome",
+      "request_token_url" : "",
+      "access_token_url" : "",
+      "authorize_url" : "",
+      "consumer_key" : "101152993",
+      "consumer_secret" : "",
+      "request_token_params" : "" }
 
 def getAccessToken(authCode):
     headers = {"Content_Type" : "text/html"}
@@ -71,7 +79,24 @@ def taobaohome():
 
 @app.route("/oauth/qq")
 def qqlogin():
-    return redirect("https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101152993&redirect_uri=www.igyming.com%2Fhome&state=1")
+
+    currentPath = os.path.dirname(__file__)
+    configFilePath = os.path.join(currentPath, 'config.ini')
+
+    cf = ConfigParser.ConfigParser()
+    cf.read(configFilePath)
+    redirectUri = cf.get('oauth', 'callback_url')
+
+    params = { "response_type" : "code",
+              "client_id" : "101152993",
+               "state" : "1" }
+
+    params['redirect_uri'] = redirectUri
+
+    query_string = urllib.urlencode(params)
+    unparseURL =  urlparse.urlunparse( ( "https", "graph.qq.com", "oauth2.0/authorize", '', query_string, '' ) )
+    print  unparseURL
+    return redirect(unparseURL)
 
 @app.route("/oauth/taobao")
 def tabaoLogin():
