@@ -1,0 +1,49 @@
+html, body, address, div, dl, form, h1, h2, h3, h4, ol, ur {
+	margin: 0;
+	padding: 0;
+}
+
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+
+body {
+	background-color: #b0c4de;
+	font: .81em/150% Arial, Helvetica, sans-serif;
+	color: #666;
+}
+
+a {
+	color: #026acb;
+	text-decoration: none;
+	outline: none;
+}
+
+p {
+	margin: 0 0 1.2em;
+	padding: 0;
+}
+
+#header {
+	position: relative;
+	height: 160px;
+}
+
+#site-logo {
+	position: absolute;
+	top: 10px;
+}
+
+#site-description {
+	font: italic 100%/130% "Times New Roman", Times, serif;
+	color: #fff;
+	position: absolute;
+	top: 55px;
+}
+#searchform {
+	position: absolute;
+	right: 10px;
+	bottom: 6px;
+	z-index: 100;
+	width: 160px;
+}
