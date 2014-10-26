@@ -68,7 +68,8 @@ def home():
     state = request.args.get('state', '')
     accessToken = getAccessToken(code)
     openID = getOpenID(accessToken)
-    return getUserInfo(accessToken, openID)
+    getUserInfo(accessToken, openID)
+    return  render_template('home.html')
 
 @app.route("/taobaohome", methods=['GET'])
 def taobaohome():
